@@ -25,9 +25,14 @@ if (process.env.PORT) {
 // give the bot something to listen for.
 controller.hears(config.hears, config.type, function(bot,message) {
 
-	var key = config.hears.replace(" ","_");
+	var key = _.replace(config.hears, / /g, "_");
 	var search = message.text.replace(config.hears,'');
 	var options = config.api;
+	
+	if(config.debug) {
+		console.info(key);
+	}						
+	
 	options.path += config.rules[key].open_query;
 	options.path += encodeURIComponent(search);
 	options.path += config.rules[key].end_query;
