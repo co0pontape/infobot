@@ -1,44 +1,77 @@
-//===
-//SLACK dummy bot for botkit
-//===
-
 //test environment
 if (!process.env.SLACK_TOKEN) {
     console.log('Error: Specify SLACK_TOKEN in environment');
     process.exit(1);
 }
 
-//get BotKit to spawn bot
-var Botkit = require('botkit');
-var controller = Botkit.slackbot({
- debug: false
+var config = require('./config.js');
+var httpClient = (config.api_protocol=='http'?require('http'):require('https'));
+var _ = require('lodash');
+
+// botkit initialize
+const botkit = require('botkit');
+const controller = botkit.slackbot({
+  debug: false,
 });
-var bot = controller.spawn({
+controller.spawn({
   token: process.env.SLACK_TOKEN
-});
+}).startRTM();
 
-// start Slack RTM
-bot.startRTM(function(err,bot,payload) {
-  // handle errors...
-});
+// give the bot something to listen for.
+controller.hears(config.hears, config.type, function(bot,message) {
 
-//prepare the webhook
-controller.setupWebserver(process.env.PORT || 3001, function(err, webserver) {
-    controller.createWebhookEndpoints(webserver, bot, function() {
-        // handle errors...
-    });
-});
+	var search = message.text.replace(config.hears,'');
+	var options = config.api;
+	options.path += 'select%20item.condition%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22';
+	options.path += encodeURIComponent(search);
+	options.path +='%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
 
-//===
-//bot commands
-//===
+	// do the GET request
+	var reqGet = httpClient.request(options, function(res) {
+		if(config.debug) {
+			console.log("statusCode: ", res.statusCode);
+			console.log("headers: ", res.headers);		
+		}
+		res.on('data', function(d) {
+			if(config.debug) {
+				console.info('GET result:\n');
+				process.stdout.write(d);
+				console.info('\n\nCall completed');			
+			}
+			obj = JSON.parse(d);
+			if(!_.get(obj, config.result_path)) {
+				bot.reply(message, message.text + ' ' + config.error_message);	
+			} else {
+				var result = '';
+				for( var i = 0,length = config.result_keys.length; i < length; i++ ) {	
+					if(config.debug) {
+						console.info(config.result_keys[i]);
+					}					
+					if(_.get(obj, config.result_path+'.'+config.result_keys[i])) {
+						if(config.debug) {
+							console.info(config.result_text[config.result_keys[i]].prefix);
+							console.info(_.get(obj, config.result_path+'.'+config.result_keys[i]));
+							console.info(config.result_text[config.result_keys[i]].suffix);
+						}					
+						result += config.result_text[config.result_keys[i]].prefix;
+						result += _.get(obj, config.result_path+'.'+config.result_keys[i]);
+						result += config.result_text[config.result_keys[i]].suffix;
+					}
+				}
+				bot.reply(message, message.text + ' is' + result);			
+			}
 
-controller.hears(['hello','hi'],['direct_message','direct_mention','mention'],function(bot,message) {
-    bot.reply(message,"Hello.");
-});
+			
+		});
 
+	});	
+	
+	reqGet.end();
+	reqGet.on('error', function(e) {
+		console.error(e);
+		bot.reply(message, message.text + ' ' + config.error_message);
+	});
 
-controller.on('slash_command',function(bot,message) {
-  // reply to slash command
-  bot.replyPublic(message,'Everyone can see the results of this slash command');
+  
+  
 });
