@@ -13,9 +13,12 @@ const botkit = require('botkit');
 const controller = botkit.slackbot({
   debug: false,
 });
+
 controller.spawn({
   token: process.env.SLACK_TOKEN
 }).startRTM();
+
+controller.setupWebserver();
 
 // give the bot something to listen for.
 controller.hears(config.hears, config.type, function(bot,message) {
@@ -60,7 +63,6 @@ controller.hears(config.hears, config.type, function(bot,message) {
 				}
 				bot.reply(message, message.text + ' is' + result);			
 			}
-
 			
 		});
 
@@ -71,7 +73,5 @@ controller.hears(config.hears, config.type, function(bot,message) {
 		console.error(e);
 		bot.reply(message, message.text + ' ' + config.error_message);
 	});
-
-  
   
 });
