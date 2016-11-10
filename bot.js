@@ -18,7 +18,9 @@ controller.spawn({
   token: process.env.SLACK_TOKEN
 }).startRTM();
 
-controller.setupWebserver();
+if (process.env.PORT) {
+	controller.setupWebserver(process.env.PORT);
+}
 
 // give the bot something to listen for.
 controller.hears(config.hears, config.type, function(bot,message) {
