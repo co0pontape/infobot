@@ -26,16 +26,21 @@ if (process.env.PORT) {
 controller.hears(config.hears, config.type, function(bot,message) {
 
 	var key = _.replace(config.hears, / /g, "_");
-	var search = message.text.replace(config.hears,'');
 	var options = config.api;
 	
-	if(config.debug) {
-		console.info(key);
-	}						
+	if(config.rules[key].append_query) {
+		if(config.rules[key].open_query) {
+			options.path += config.rules[key].open_query;	
+		}			
+		options.path += encodeURIComponent(message.text.replace(config.hears,''));
+		if(config.rules[key].end_query) {
+			options.path += config.rules[key].end_query;	
+		}
+	}
 	
-	options.path += config.rules[key].open_query;
-	options.path += encodeURIComponent(search);
-	options.path += config.rules[key].end_query;
+	if(config.debug) {
+		console.log(options);
+	}
 
 	// do the GET request
 	var reqGet = httpClient.request(options, function(res) {
@@ -55,9 +60,6 @@ controller.hears(config.hears, config.type, function(bot,message) {
 			} else {
 				var result = '';
 				for( var i = 0,length = config.rules[key].result_keys.length; i < length; i++ ) {	
-					if(config.debug) {
-						console.info(config.rules[key].result_keys[i]);
-					}					
 					if(_.get(obj, config.rules[key].result_path+'.'+config.rules[key].result_keys[i])) {
 						result += config.rules[key].result_text[config.rules[key].result_keys[i]].prefix;
 						result += _.get(obj, config.rules[key].result_path+'.'+config.rules[key].result_keys[i]);
