@@ -25,25 +25,34 @@ if (process.env.PORT) {
 // give the bot something to listen for.
 controller.hears(config.hears, config.type, function(bot,message) {
 
+	if(config.debug) {
+		console.log("message: ", message);
+		console.log("config.api: ", config.api);
+	}
+
 	var key = _.replace(config.hears, / /g, "_");
-	var options = config.api;
+	var httpClientOptions = _.clone(config.api);
+	
+	if(config.debug) {
+		console.log("opening httpClientOptions:", httpClientOptions);
+	}
 	
 	if(config.rules[key].append_query) {
 		if(config.rules[key].open_query) {
-			options.path += config.rules[key].open_query;	
+			httpClientOptions.path += config.rules[key].open_query;	
 		}			
-		options.path += encodeURIComponent(message.text.replace(config.hears,''));
+		httpClientOptions.path += encodeURIComponent(message.text.replace(config.hears,''));
 		if(config.rules[key].end_query) {
-			options.path += config.rules[key].end_query;	
+			httpClientOptions.path += config.rules[key].end_query;	
 		}
 	}
 	
 	if(config.debug) {
-		console.log(options);
+		console.log("ending httpClientOptions:", httpClientOptions);
 	}
 
 	// do the GET request
-	var reqGet = httpClient.request(options, function(res) {
+	var reqGet = httpClient.request(httpClientOptions, function(res) {
 		if(config.debug) {
 			console.log("statusCode: ", res.statusCode);
 			console.log("headers: ", res.headers);		

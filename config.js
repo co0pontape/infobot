@@ -23,7 +23,7 @@ var config = {
 					suffix : ' degrees'
 				},
 				text : {
-					prefix : ' and is currently ',
+					prefix : ' and ',
 					suffix : '.'
 				}
 			}			
