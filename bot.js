@@ -4,7 +4,7 @@ if (!process.env.SLACK_TOKEN) {
     process.exit(1);
 }
 
-var config = require('./config.js');
+var config = require('./config_demo.js');
 var httpClient = (config.api_protocol=='http'?require('http'):require('https'));
 var _ = require('lodash');
 
