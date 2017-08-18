@@ -1,15 +1,14 @@
 var config = {
-	debug : true,
 	api_protocol: 'https',
 	api : {
 		host : 'query.yahooapis.com',
 		port : 443,
 		path : '/v1/public/yql?q=',
-		method : 'GET' 
+		method : 'GET'
 	},
 	error_message : 'is unknown...',
 	type: ['direct_message','direct_mention'],
-	hears : 'current conditions for',	
+	hears : 'current conditions for',
 	rules : {
 		current_conditions_for : {
 			append_query: true,
@@ -26,9 +25,9 @@ var config = {
 					prefix : ' and ',
 					suffix : '.'
 				}
-			}			
+			}
 		}
-	}		
+	}
 
 }
 

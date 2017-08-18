@@ -1,10 +1,13 @@
+// initialize bot config
+var bot_config = require('./bot_config.js');
+
 //test environment
-if (!process.env.SLACK_TOKEN) {
+if (!bot_config.api_token) {
     console.log('Error: Specify SLACK_TOKEN in environment');
     process.exit(1);
 }
 
-var config = require('./config_demo.js');
+var config = require(bot_config.api_config);
 var httpClient = (config.api_protocol=='http'?require('http'):require('https'));
 var _ = require('lodash');
 
@@ -15,7 +18,7 @@ const controller = botkit.slackbot({
 });
 
 controller.spawn({
-  token: process.env.SLACK_TOKEN
+  token: bot_config.api_token
 }).startRTM();
 
 if (process.env.PORT) {
@@ -25,7 +28,7 @@ if (process.env.PORT) {
 // give the bot something to listen for.
 controller.hears(config.hears, config.type, function(bot,message) {
 
-	if(config.debug) {
+	if(bot_config.debug) {
 		console.log("message: ", message);
 		console.log("config.api: ", config.api);
 	}
@@ -33,7 +36,7 @@ controller.hears(config.hears, config.type, function(bot,message) {
 	var key = _.replace(config.hears, / /g, "_");
 	var httpClientOptions = _.clone(config.api);
 	
-	if(config.debug) {
+	if(bot_config.debug) {
 		console.log("opening httpClientOptions:", httpClientOptions);
 	}
 	
@@ -47,18 +50,18 @@ controller.hears(config.hears, config.type, function(bot,message) {
 		}
 	}
 	
-	if(config.debug) {
+	if(bot_config.debug) {
 		console.log("ending httpClientOptions:", httpClientOptions);
 	}
 
 	// do the GET request
 	var reqGet = httpClient.request(httpClientOptions, function(res) {
-		if(config.debug) {
+		if(bot_config.debug) {
 			console.log("statusCode: ", res.statusCode);
 			console.log("headers: ", res.headers);		
 		}
 		res.on('data', function(d) {
-			if(config.debug) {
+			if(bot_config.debug) {
 				console.info('GET result:\n');
 				process.stdout.write(d);
 				console.info('\n\nCall completed');			
