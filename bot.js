@@ -3,11 +3,15 @@ var bot_config = require('./bot_config.js');
 
 //test environment
 if (!bot_config.api_token) {
-    console.log('Error: Specify SLACK_TOKEN in environment');
+    console.log('Error: Specify SLACK_TOKEN as environment var');
     process.exit(1);
 }
 
-var config = require(bot_config.api_config);
+if (!bot_config.api_config) {
+	console.log('Error: Specify API_CONFIG as environment var');
+} else {
+	var config = require('./'+bot_config.api_config);
+}
 var httpClient = (config.api_protocol=='http'?require('http'):require('https'));
 var _ = require('lodash');
 
